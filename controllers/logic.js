@@ -11,6 +11,7 @@ register = (req, res) => {
 
     //check user data in collection
     //syntax anusarich=dbname.collectionname.findOne({key:value}) aanu...ivide model il ulla key acno and thott mukalil value edukunna name acno um same aayath kond aanu {acno} nu single aayi kodukunnath
+    //asynchronous ,db run, so then()
     users.findOne({ acno }).then(user => {
         if (user) {
             // res.send("User Already exists")
@@ -24,7 +25,7 @@ register = (req, res) => {
         }
         else {
             //create an object for user
-            //same name varunnath kond aanu acno,psw,uname oke single aayi kodukunnath sherikum acno:acno ingane aanu.
+            //same name varunnath kond aanu acno,psw,uname oke single aayi kodukunnath sherikum acno:acno nammal kodukkunna name same aanenkil eee name...allenki aa name thanne kodukkanam. ingane aanu.
             //balance=0, adyam 0 balance aayirikumallo.
             let newUser = new users({
                 acno,
@@ -45,6 +46,32 @@ register = (req, res) => {
         }
     })
 }
+
+//login
+login=(req,res)=>{
+    const {acno,psw}=req.body
+
+    users.findOne({acno,psw}).then(user=>{
+        if(user){
+            res.status(200).json({
+                message:"Login success",
+                status:true,
+                statusCode:200
+            })
+        }
+        else{
+            res.status(404).json({
+                message:"Incorrect acno and password",
+                status:false,
+                statusCode:404
+            })
+        }
+    })
+}
+
+
+
+
 //function call ivide alla vere page aanu so ivide ninnu export
 //multidata export = {}
-module.exports = { register }
+module.exports = { register,login }
