@@ -9,6 +9,8 @@ const express=require('express')
 // //import router.....................................
 const router = require('./routes/router')
 
+//import cors to connect frond end to backend integration
+const cors=require('cors') 
 
 // // ........2..........................................
 
@@ -19,7 +21,9 @@ const server = express()
 
 // //To convert all incoming json data to js
 server.use(express.json())
-
+server.use(cors())
+// //set router
+server.use(router)
 // //import connection.js file
 require('./database/connection')
 // // 3 - server run
@@ -31,8 +35,10 @@ server.listen(port,()=>{
     console.log(`____server.. started at portnumber ${port}____`);
 })
 
-// //set router
-server.use(router)
+
+
+// //ask server to use cor
+// server.use(cors())
 
 // //api calls resolve
 // // server.post('/signup',(req,res)=>{

@@ -48,20 +48,123 @@ register = (req, res) => {
 }
 
 //login
-login=(req,res)=>{
-    const {acno,psw}=req.body
+login = (req, res) => {
+    const { acno, psw } = req.body
+    //users table/collection il poyi nokum acno undonnu....undel then use for resolve
+    users.findOne({ acno, psw }).then(user => {
+        if (user) {
+            res.status(200).json({
+                message: "Login success",
+                status: true,
+                statusCode: 200,
+                currentUser: user.uname,
+                acno: user.acno
+            })
+        }
+        else {
+            res.status(404).json({
+                message: "Incorrect acno or password",
+                status: false,
+                statusCode: 404
+            })
+        }
+    })
+}
 
-    users.findOne({acno,psw}).then(user=>{
+//Balance check
+getBalance = (req, res) => {
+    const { acno } = req.params
+    users.findOne({ acno }).then(user => {
+        if (user) {
+            res.status(200).json({
+                message: user.balance,
+                status: true,
+                statusCode: 200,
+            })
+        }
+        else {
+            res.status(404).json({
+                message: "User Not Exists",
+                status: false,
+                statusCode: 404
+            })
+        }
+    })
+
+}
+//Money transfer
+moneyTransfer = (req, res) => {
+    const { sAcno, rAcno, amount, psw, date } = req.body
+
+    //convert amount to number,,input field value will be string so convert string to Number.
+    var amnt = parseInt(amount)
+
+    //check sender details
+    users.findOne({ acno: sAcno, psw }).then(suser => {
+        if (suser) {
+            //check reciiver details in db
+            users.findOne({ acno: rAcno }).then(ruser => {
+                if (ruser) {
+                    //check amount with sender balance
+                    if (amnt <= suser.balance) {
+
+                        //update sender object
+                        suser.balance = suser.balance - amnt
+                        suser.transactions.push({ tacno: rAcno, amount: amnt, type: "DEBIT", date })
+                        suser.save()
+
+                        //update reciever object
+                        ruser.balance = ruser.balance + amnt
+                        ruser.transactions.push({ tacno: sAcno, amount: amnt, type: "CREDIT", date })
+                        ruser.save()
+
+                        res.status(200).json({
+                            message: "transaction success",
+                            status: true,
+                            statusCode: 200
+                        })
+                    } else {
+                        res.status(406).json({
+                            message: "Insufficient balance",
+                            status: false,
+                            statusCode: 406
+                        })
+                    }
+
+
+                } else {
+                    res.status(404).json({
+                        message: "Invalid credit credentials",
+                        status: false,
+                        statusCode: 404
+                    })
+                }
+            })
+
+
+        } else {
+            res.status(404).json({
+                message: "Invalid debit credentials",
+                status: false,
+                statusCode: 404
+            })
+        }
+    })
+}
+
+// accountStatement
+accountStatement=(req,res)=>{
+    const {acno}=req.params
+    users.findOne({acno}).then(user=>{
         if(user){
             res.status(200).json({
-                message:"Login success",
+                message:user.transactions,
                 status:true,
                 statusCode:200
             })
-        }
-        else{
-            res.status(404).json({
-                message:"Incorrect acno and password",
+        }else{
+            req.status(404).json({
+                messgae:"user not exists",
                 status:false,
                 statusCode:404
             })
@@ -69,9 +172,6 @@ login=(req,res)=>{
     })
 }
 
-
-
-
 //function call ivide alla vere page aanu so ivide ninnu export
 //multidata export = {}
-module.exports = { register,login }
+module.exports = { register, login, getBalance,moneyTransfer,accountStatement }
