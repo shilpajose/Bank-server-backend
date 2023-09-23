@@ -1,5 +1,6 @@
 //import model
 const users = require("../models/collections")
+const jwt = require('jsonwebtoken')
 
 //Register-Account creation like function
 //destructuring in js
@@ -53,12 +54,16 @@ login = (req, res) => {
     //users table/collection il poyi nokum acno undonnu....undel then use for resolve
     users.findOne({ acno, psw }).then(user => {
         if (user) {
+            //token generation
+            const token = jwt.sign({ acno }, 'secretkey123')
+
             res.status(200).json({
                 message: "Login success",
                 status: true,
                 statusCode: 200,
                 currentUser: user.uname,
-                acno: user.acno
+                acno: user.acno,
+                token
             })
         }
         else {
@@ -153,25 +158,40 @@ moneyTransfer = (req, res) => {
 }
 
 // accountStatement
-accountStatement=(req,res)=>{
-    const {acno}=req.params
-    users.findOne({acno}).then(user=>{
-        if(user){
+accountStatement = (req, res) => {
+    const { acno } = req.params
+    users.findOne({ acno }).then(user => {
+        if (user) {
             res.status(200).json({
-                message:user.transactions,
-                status:true,
-                statusCode:200
+                message: user.transactions,
+                status: true,
+                statusCode: 200
             })
-        }else{
+        } else {
             req.status(404).json({
-                messgae:"user not exists",
-                status:false,
-                statusCode:404
+                messgae: "user not exists",
+                status: false,
+                statusCode: 404
             })
         }
     })
 }
 
+//delete account
+accountDelete = (req, res) => {
+    const { acno } = req.params
+    users.deleteOne({ acno }).then(data => {
+        if (data) {
+            res.status(200).json({
+                message: "account deleted successfully",
+                status: true,
+                statusCode: 200
+            })
+        }
+
+    })
+}
+
 //function call ivide alla vere page aanu so ivide ninnu export
 //multidata export = {}
-module.exports = { register, login, getBalance,moneyTransfer,accountStatement }
+module.exports = { register, login, getBalance, moneyTransfer, accountStatement, accountDelete }
